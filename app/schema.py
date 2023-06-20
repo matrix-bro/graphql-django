@@ -13,5 +13,22 @@ class Query(graphene.ObjectType):
 
     def resolve_list_author(root, info):
         return Author.objects.all()
+    
 
-schema = graphene.Schema(query=Query)
+class AuthorMutation(graphene.Mutation):
+    class Arguments:
+        name = graphene.String()
+
+    author = graphene.Field(AuthorType)
+
+    @classmethod
+    def mutate(cls, root, info, name):
+        author = Author(name=name)
+        author.save()
+
+        return AuthorMutation(author=author)
+
+class Mutation(graphene.ObjectType):
+    create_author = AuthorMutation.Field()
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
