@@ -43,8 +43,22 @@ class UpdateAuthorMutation(graphene.Mutation):
 
         return UpdateAuthorMutation(author=author)
 
+class DeleteAuthorMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+
+    author = graphene.Field(AuthorType)
+
+    @classmethod
+    def mutate(cls, root, info, id):
+        author = Author.objects.get(id=id)
+        author.delete()
+
+        return
+
 class Mutation(graphene.ObjectType):
     create_author = AuthorMutation.Field()
     update_author = UpdateAuthorMutation.Field()
+    delete_author = DeleteAuthorMutation.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
