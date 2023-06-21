@@ -1,5 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
+from graphql import GraphQLError
 
 from app.models import Author, Book
 
@@ -36,6 +37,25 @@ class AuthorMutation(graphene.Mutation):
 
         return AuthorMutation(author=author)
     
+class BookMutation(graphene.Mutation):
+    class Arguments:
+        author_id = graphene.ID()
+        title = graphene.String()
+
+    book = graphene.Field(BookType)
+
+    @classmethod
+    def mutate(cls, root, info, author_id, title):
+        try:
+            author = Author.objects.get(id=author_id)
+        except Author.DoesNotExist:
+            raise GraphQLError("Invalid Author ID")
+
+        book = Book(title=title, author=author)
+        book.save()
+
+        return BookMutation(book=book)
+    
 class UpdateAuthorMutation(graphene.Mutation):
     class Arguments:
         id = graphene.ID()
@@ -68,5 +88,8 @@ class Mutation(graphene.ObjectType):
     create_author = AuthorMutation.Field()
     update_author = UpdateAuthorMutation.Field()
     delete_author = DeleteAuthorMutation.Field()
+    
+    create_book = BookMutation.Field()
+
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
