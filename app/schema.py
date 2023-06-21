@@ -1,19 +1,27 @@
 import graphene
 from graphene_django import DjangoObjectType
 
-from app.models import Author
+from app.models import Author, Book
 
 class AuthorType(DjangoObjectType):
     class Meta:
         model = Author
         field = ("id", "name")
 
+class BookType(DjangoObjectType):
+    class Meta:
+        model = Book
+        field = ("id", "title", "author")
+
 class Query(graphene.ObjectType):
     list_author = graphene.List(AuthorType)
+    list_books = graphene.List(BookType)
 
     def resolve_list_author(root, info):
         return Author.objects.all()
     
+    def resolve_list_books(root, info):
+        return Book.objects.all()
 
 class AuthorMutation(graphene.Mutation):
     class Arguments:
