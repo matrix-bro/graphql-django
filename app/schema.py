@@ -1,6 +1,8 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql import GraphQLError
+from graphene import relay
+from graphene_django.filter import DjangoFilterConnectionField
 
 from app.models import Author, Book
 
@@ -14,15 +16,26 @@ class BookType(DjangoObjectType):
         model = Book
         field = ("id", "title", "author")
 
+class AuthorNode(DjangoObjectType):
+    class Meta:
+        model = Author
+        filter_fields = ['name']
+        interfaces = (relay.Node, )
+
 class Query(graphene.ObjectType):
     list_author = graphene.List(AuthorType)
     list_books = graphene.List(BookType)
+
+    author = relay.Node.Field(AuthorNode)
+    all_authors = DjangoFilterConnectionField(AuthorNode)
 
     def resolve_list_author(root, info):
         return Author.objects.all()
     
     def resolve_list_books(root, info):
         return Book.objects.all()
+
+
 
 class AuthorMutation(graphene.Mutation):
     class Arguments:
