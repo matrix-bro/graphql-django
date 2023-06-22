@@ -22,12 +22,25 @@ class AuthorNode(DjangoObjectType):
         filter_fields = ['name']
         interfaces = (relay.Node, )
 
+class BookNode(DjangoObjectType):
+    class Meta:
+        model = Book
+        filter_fields = {
+            'title': ['exact', 'icontains', 'istartswith'],
+            'author': ['exact'],
+            'author__name': ['exact'],
+        }
+        interfaces = (relay.Node, )
+
 class Query(graphene.ObjectType):
     list_author = graphene.List(AuthorType)
     list_books = graphene.List(BookType)
 
     author = relay.Node.Field(AuthorNode)
     all_authors = DjangoFilterConnectionField(AuthorNode)
+
+    book = relay.Node.Field(BookNode)
+    all_books = DjangoFilterConnectionField(BookNode)
 
     def resolve_list_author(root, info):
         return Author.objects.all()
